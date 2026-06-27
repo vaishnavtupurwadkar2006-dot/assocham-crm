@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: assocham-crm-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: DATA_SOURCE
+        value: google_sheets
+      - key: GOOGLE_SHEETS_SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_SHEETS_CREDENTIALS_JSON
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
