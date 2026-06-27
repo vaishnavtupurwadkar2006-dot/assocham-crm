@@ -74,9 +74,14 @@ class Settings(BaseSettings):
 
     @property
     def google_sheets_configured(self) -> bool:
+        import os
+        has_credentials = bool(self.google_sheets_credentials_json)
+        if not has_credentials:
+            # Fallback to local credentials.json for backward compatibility
+            has_credentials = os.path.exists("credentials.json")
         return bool(
             self.google_sheets_spreadsheet_id
-            and self.google_sheets_credentials_json
+            and has_credentials
         )
 
     @property

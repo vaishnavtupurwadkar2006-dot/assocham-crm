@@ -41,7 +41,7 @@ def get_contact_repository() -> AbstractContactRepository:
         from app.services.google_sheets_repository import GoogleSheetsRepository
         return GoogleSheetsRepository(
             spreadsheet_id=settings.google_sheets_spreadsheet_id,
-            credentials_json=settings.google_sheets_credentials_json,
+            credentials_json=settings.google_sheets_credentials_json or "credentials.json",
             sheet_name=settings.google_sheets_contacts_sheet_name,
         )
     from app.services.mock_repository import MockContactRepository
@@ -55,7 +55,7 @@ def get_users_repository() -> Any:
         from app.services.users_repository import UsersRepository
         return UsersRepository(
             spreadsheet_id=settings.google_sheets_spreadsheet_id,
-            credentials_json=settings.google_sheets_credentials_json,
+            credentials_json=settings.google_sheets_credentials_json or "credentials.json",
             sheet_name=settings.google_sheets_users_sheet_name,
         )
     from app.services.mock_repository import MockUsersRepository
@@ -69,7 +69,7 @@ def get_audit_repository() -> AuditRepository | None:
         return None
     return AuditRepository(
         spreadsheet_id=settings.google_sheets_spreadsheet_id,
-        credentials_json=settings.google_sheets_credentials_json,
+        credentials_json=settings.google_sheets_credentials_json or "credentials.json",
         sheet_name=settings.google_sheets_audit_sheet_name,
     )
 
