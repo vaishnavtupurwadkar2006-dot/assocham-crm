@@ -120,6 +120,14 @@ class ContactUpdate(BaseModel):
     def validate_phone(cls, v: Optional[str]) -> Optional[str]:
         return normalize_phone_number(v)
 
+    @field_validator("Next_Followup_Date", mode="before")
+    @classmethod
+    def coerce_empty_date(cls, v):
+        """Treat empty string as None so callers can clear the follow-up date."""
+        if v == "" or v is None:
+            return None
+        return v
+
 
 
 class ContactResponse(BaseModel):
