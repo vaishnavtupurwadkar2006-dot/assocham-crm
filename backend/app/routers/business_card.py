@@ -149,7 +149,7 @@ async def confirm_and_save(
         Source_Type="Business Card",
         Import_Source=payload.Event_Source or "Business Card Import",
         Notes=payload.Notes,
-        Next_Followup_Date=None,
+        Next_Followup_Date=payload.Next_Followup_Date if payload.Next_Followup_Date else None,
         Raw_Extraction_JSON=payload.Raw_Extraction_JSON,
     )
 
@@ -234,5 +234,6 @@ def _payload_to_dict(payload: ConfirmExtractionRequest) -> dict:
         "Source_Type": "Business Card",
         "Import_Source": payload.Event_Source or "Business Card Import",
         "Notes": payload.Notes,
+        "Next_Followup_Date": payload.Next_Followup_Date if payload.Next_Followup_Date else None,
         "Raw_Extraction_JSON": payload.Raw_Extraction_JSON,
     }

@@ -46,9 +46,9 @@ class DashboardService:
         bc_imports = 0
 
         for c in contacts:
-            # Follow-ups in next 30 days
+            # Follow-ups due (including overdue and in next 30 days)
             fu = _parse_date(c.get("Next_Followup_Date"))
-            if fu and today <= fu <= today + timedelta(days=30):
+            if fu and fu <= today + timedelta(days=30):
                 upcoming += 1
 
             # New this month

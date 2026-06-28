@@ -17,6 +17,8 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from app.core.phone import normalize_phone_number
+
 
 ContactPriority = Literal["High", "Medium", "Low"]
 ContactStatus = Literal["Active", "Inactive", "Pending", "Archived"]
@@ -73,6 +75,12 @@ class ContactBase(BaseModel):
         description="Raw JSON from Gemini Vision extraction — stored for audit"
     )
 
+    @field_validator("Phone", "Alternate_Phone", mode="before")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_phone_number(v)
+
+
 
 class ContactCreate(ContactBase):
     Company: str = Field(..., min_length=1, max_length=200)
@@ -106,6 +114,12 @@ class ContactUpdate(BaseModel):
     AI_Tags: Optional[list[str]] = None
     AI_Summary: Optional[str] = None
     Notes: Optional[str] = None
+
+    @field_validator("Phone", "Alternate_Phone", mode="before")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_phone_number(v)
+
 
 
 class ContactResponse(BaseModel):

@@ -31,7 +31,7 @@ export default function DashboardPage() {
     refetchInterval: 60_000,
   })
   const { data: followupsRes, isLoading: followupsLoading } = useQuery({
-    queryKey: ['dashboard-followups'],
+    queryKey: ['followups'],
     queryFn: getFollowUps,
     refetchInterval: 60_000,
   })

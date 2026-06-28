@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Contact } from '@/types'
+import { normalizePhoneNumber } from '@/lib/phone'
+
 
 interface ContactFormProps {
   initial?: Partial<Contact>
@@ -42,6 +44,7 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
     Notes: initial.Notes || '',
   })
 
+  const initialStr = JSON.stringify(initial)
   useEffect(() => {
     setForm({
       Name: initial.Name || '',
@@ -68,7 +71,7 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
       Next_Followup_Date: initial.Next_Followup_Date || '',
       Notes: initial.Notes || '',
     })
-  }, [initial])
+  }, [initialStr])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -84,8 +87,11 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
     try {
       await onSubmit({
         ...form,
+        Phone: normalizePhoneNumber(form.Phone),
+        Alternate_Phone: normalizePhoneNumber(form.Alternate_Phone),
         Next_Followup_Date: form.Next_Followup_Date || undefined,
       })
+
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to save contact.')
       setIsSubmitting(false)

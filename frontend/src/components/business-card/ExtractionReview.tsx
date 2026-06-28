@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import type { ExtractedFields } from '@/types'
+import { normalizePhoneNumber } from '@/lib/phone'
+
 
 interface ExtractionReviewProps {
   extracted: ExtractedFields
@@ -60,10 +62,11 @@ export default function ExtractionReview({
       company: form.company,
       parent_organization: form.parent_organization,
       sector: form.sector,
-      phone: form.phone,
-      alternate_phone: form.alternate_phone,
+      phone: normalizePhoneNumber(form.phone),
+      alternate_phone: normalizePhoneNumber(form.alternate_phone),
       email: form.email,
       alternate_email: form.alternate_email,
+
       website: form.website,
       linkedin: form.linkedin,
       address: form.address,

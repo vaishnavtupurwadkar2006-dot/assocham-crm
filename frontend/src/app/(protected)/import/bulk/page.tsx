@@ -117,7 +117,6 @@ export default function BulkImportPage() {
     queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
     queryClient.invalidateQueries({ queryKey: ['contacts'] })
     queryClient.invalidateQueries({ queryKey: ['followups'] })
-    queryClient.invalidateQueries({ queryKey: ['dashboard-followups'] })
   }
 
   const successCount = results.filter(r => r.success).length

@@ -182,7 +182,22 @@ class GoogleSheetsRepository:
             logger.warning("Sheet is empty")
             return []
 
-        header = rows[0]
+        header = [h.strip() for h in rows[0]]
+        missing_fields = [f for f in CONTACT_FIELDS if f not in header]
+        if missing_fields:
+            new_header = header + missing_fields
+            try:
+                self._service.spreadsheets().values().update(
+                    spreadsheetId=self._spreadsheet_id,
+                    range=f"'{self._sheet_name}'!A1",
+                    valueInputOption="USER_ENTERED",
+                    body={"values": [new_header]},
+                ).execute()
+                header = new_header
+                logger.info("Added missing header columns to sheet: %s", missing_fields)
+            except Exception as exc:
+                logger.error("Failed to append missing headers: %s", exc)
+
         self._col_map = {name: idx for idx, name in enumerate(header)}
 
         contacts: list[dict[str, Any]] = []
@@ -204,6 +219,11 @@ class GoogleSheetsRepository:
                 d[field] = _parse_date(raw)
             elif field in LIST_FIELDS:
                 d[field] = _parse_list(raw)
+            elif field in ("Phone", "Alternate_Phone"):
+                val = raw
+                if val.startswith("'"):
+                    val = val[1:]
+                d[field] = val or None
             else:
                 d[field] = raw or None
 
@@ -216,9 +236,17 @@ class GoogleSheetsRepository:
             num_cols = max(self._col_map.values()) + 1
             row = [""] * num_cols
             for field, col_idx in self._col_map.items():
-                row[col_idx] = _serialize_field(contact.get(field))
+                val = _serialize_field(contact.get(field))
+                if field in ("Phone", "Alternate_Phone") and val and not val.startswith("'"):
+                    val = f"'{val}"
+                row[col_idx] = val
         else:
-            row = [_serialize_field(contact.get(f)) for f in CONTACT_FIELDS]
+            row = []
+            for f in CONTACT_FIELDS:
+                val = _serialize_field(contact.get(f))
+                if f in ("Phone", "Alternate_Phone") and val and not val.startswith("'"):
+                    val = f"'{val}"
+                row.append(val)
         return row
 
     def _find_row_index(self, contact_id: str, contacts: list[dict[str, Any]]) -> int | None:

@@ -6,7 +6,9 @@ Request/response models for business card extraction endpoints.
 
 from __future__ import annotations
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+from app.core.phone import normalize_phone_number
+
 
 
 class ExtractionRequest(BaseModel):
@@ -39,6 +41,12 @@ class ExtractedFields(BaseModel):
     country: Optional[str] = "India"
     sector: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("phone", "alternate_phone", mode="before")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_phone_number(v)
+
 
 
 class ExtractionResponse(BaseModel):
@@ -127,3 +135,9 @@ class ConfirmExtractionRequest(BaseModel):
         None,
         description="If set, merge with this existing contact ID",
     )
+
+    @field_validator("Phone", "Alternate_Phone", mode="before")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_phone_number(v)
+

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
+import { useQuery } from '@tanstack/react-query'
+import { getFollowUps } from '@/lib/api'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +35,12 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
+
+  const { data: followupsRes } = useQuery({
+    queryKey: ['followups'],
+    queryFn: getFollowUps,
+    refetchInterval: 60_000,
+  })
 
   const handleLinkClick = () => {
     setMobileOpen(false)
@@ -92,6 +100,13 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
             <div className="space-y-1">
               {NAV_ITEMS.map(({ href, label, icon: Icon, badge }) => {
                 const active = pathname === href || pathname.startsWith(href + '/')
+                let displayBadge = badge
+                if (href === '/follow-ups') {
+                  const count = (followupsRes?.data?.overdue?.length || 0) + 
+                                (followupsRes?.data?.due_today?.length || 0) + 
+                                (followupsRes?.data?.due_this_week?.length || 0)
+                  displayBadge = count > 0 ? String(count) : undefined
+                }
                 return (
                   <Link
                     key={href}
@@ -106,16 +121,16 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
                     {!collapsed && <span className="flex-1 truncate">{label}</span>}
-                    {badge && !collapsed && (
+                    {displayBadge && !collapsed && (
                       <span className="text-[10px] bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded font-bold">
-                        {badge}
+                        {displayBadge}
                       </span>
                     )}
 
                     {/* Tooltip when collapsed */}
                     {collapsed && (
                       <span className="absolute left-16 scale-0 group-hover:scale-100 transition-all duration-150 origin-left rounded bg-zinc-900 dark:bg-zinc-800 px-2 py-1 text-xs text-white whitespace-nowrap z-50 shadow-md">
-                        {label} {badge && `(${badge})`}
+                        {label} {displayBadge && `(${displayBadge})`}
                       </span>
                     )}
                   </Link>

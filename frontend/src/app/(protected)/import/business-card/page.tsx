@@ -96,7 +96,6 @@ export default function BusinessCardPage() {
         queryClient.invalidateQueries({ queryKey: ['dashboard-recent'] })
         queryClient.invalidateQueries({ queryKey: ['contacts'] })
         queryClient.invalidateQueries({ queryKey: ['followups'] })
-        queryClient.invalidateQueries({ queryKey: ['dashboard-followups'] })
       }
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save contact.')
@@ -117,7 +116,6 @@ export default function BusinessCardPage() {
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
         queryClient.invalidateQueries({ queryKey: ['contacts'] })
         queryClient.invalidateQueries({ queryKey: ['followups'] })
-        queryClient.invalidateQueries({ queryKey: ['dashboard-followups'] })
       }
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to save.')

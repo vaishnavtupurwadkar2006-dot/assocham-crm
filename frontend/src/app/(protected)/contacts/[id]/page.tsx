@@ -33,7 +33,6 @@ export default function ContactDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['contacts'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
       queryClient.invalidateQueries({ queryKey: ['followups'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-followups'] })
       router.push('/contacts')
     } catch {
       setIsDeleting(false)
