@@ -114,8 +114,9 @@ class GoogleSheetsRepository:
 
         record = deepcopy(all_contacts[row_index - 2])
         for key, value in updates.items():
-            if value is not None:
-                record[key] = value
+            # Allow None to explicitly clear a field (e.g. removing a follow-up date).
+            # Fields absent from `updates` are untouched.
+            record[key] = value
         record["Last_Updated"] = date.today()
 
         self._sheets_update_row(row_index, self._dict_to_row(record))

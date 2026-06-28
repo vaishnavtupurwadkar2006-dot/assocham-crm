@@ -89,7 +89,7 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
         ...form,
         Phone: normalizePhoneNumber(form.Phone),
         Alternate_Phone: normalizePhoneNumber(form.Alternate_Phone),
-        Next_Followup_Date: form.Next_Followup_Date || undefined,
+        Next_Followup_Date: form.Next_Followup_Date || null,
       })
 
     } catch (err: unknown) {

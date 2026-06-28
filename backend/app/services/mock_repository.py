@@ -142,8 +142,8 @@ class MockContactRepository(AbstractContactRepository):
             raise ContactNotFoundError(f"Contact '{contact_id}' not found.")
         record = self._store[contact_id]
         for key, value in updates.items():
-            if value is not None:
-                record[key] = value
+            # Allow None to explicitly clear a field (e.g. removing a follow-up date).
+            record[key] = value
         record["Last_Updated"] = date.today().isoformat()
         logger.info("Contact updated: %s", contact_id)
         return copy.deepcopy(record)

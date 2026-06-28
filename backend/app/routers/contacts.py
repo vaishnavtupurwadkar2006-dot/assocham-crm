@@ -115,7 +115,7 @@ async def update_contact(
     svc: ContactService = Depends(get_contact_service),
 ):
     audit_repo = get_audit_repository()
-    updates = payload.model_dump(exclude_none=True)
+    updates = payload.model_dump(exclude_unset=True)
     contact = svc.update_contact(
         contact_id=contact_id,
         updates=updates,
