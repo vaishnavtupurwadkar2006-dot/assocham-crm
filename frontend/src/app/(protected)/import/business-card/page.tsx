@@ -9,6 +9,7 @@ import ExtractionReview from '@/components/business-card/ExtractionReview'
 import DuplicateModal from '@/components/business-card/DuplicateModal'
 import { extractBusinessCard, confirmBusinessCard } from '@/lib/api'
 import type { ExtractedFields, ExtractionResponse, Contact } from '@/types'
+import { normalizeWebsite } from '@/lib/utils'
 
 type Step = 'upload' | 'review' | 'duplicate' | 'success'
 
@@ -62,7 +63,7 @@ export default function BusinessCardPage() {
         Alternate_Phone: reviewedData.alternate_phone,
         Email: reviewedData.email,
         Alternate_Email: reviewedData.alternate_email,
-        Website: reviewedData.website,
+        Website: normalizeWebsite(reviewedData.website),
         LinkedIn: reviewedData.linkedin,
         Address: reviewedData.address,
         City: reviewedData.city,

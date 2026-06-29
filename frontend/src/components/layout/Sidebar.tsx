@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { getFollowUps } from '@/lib/api'
+import Image from 'next/image'
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -66,8 +67,15 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center overflow-hidden">
-            <div className="w-8 h-8 rounded bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center flex-shrink-0 mr-3">
-              <span className="text-white font-bold text-sm">A</span>
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 mr-3">
+              <Image
+                src="/assocham-emblem.png"
+                alt="ASSOCHAM Emblem"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
             </div>
             {!collapsed && (
               <div className="transition-opacity duration-200">

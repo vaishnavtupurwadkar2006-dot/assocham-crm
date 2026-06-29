@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
 
 function LoginForm() {
   const { login, isAuthenticated } = useAuth()
@@ -44,8 +45,15 @@ function LoginForm() {
       <div className="w-full max-w-md">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-600 dark:bg-indigo-500 mb-4 shadow-sm">
-            <span className="text-xl font-bold text-white">A</span>
+          <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
+            <Image
+              src="/assocham-emblem.png"
+              alt="ASSOCHAM Emblem"
+              width={48}
+              height={48}
+              className="object-contain"
+              priority
+            />
           </div>
           <h1 className="text-xl font-bold text-zinc-900 dark:text-white">ASSOCHAM CRM</h1>
           <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-xs font-medium">Contact Intelligence Platform</p>

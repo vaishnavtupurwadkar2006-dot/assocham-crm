@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import type { ExtractedFields } from '@/types'
 import { normalizePhoneNumber } from '@/lib/phone'
+import { normalizeWebsite } from '@/lib/utils'
 
 
 interface ExtractionReviewProps {
@@ -67,7 +68,7 @@ export default function ExtractionReview({
       email: form.email,
       alternate_email: form.alternate_email,
 
-      website: form.website,
+      website: normalizeWebsite(form.website),
       linkedin: form.linkedin,
       address: form.address,
       city: form.city,
@@ -132,7 +133,7 @@ export default function ExtractionReview({
           <Field label="Alternate Phone" value={form.alternate_phone} onChange={set('alternate_phone')} type="tel" />
           <Field label="Email" value={form.email} onChange={set('email')} type="email" />
           <Field label="Alternate Email" value={form.alternate_email} onChange={set('alternate_email')} type="email" />
-          <Field label="Website" value={form.website} onChange={set('website')} type="url" />
+          <Field label="Website" value={form.website} onChange={set('website')} />
           <Field label="LinkedIn" value={form.linkedin} onChange={set('linkedin')} />
         </div>
       </div>

@@ -18,6 +18,7 @@ from pydantic import (
     model_validator,
 )
 from app.core.phone import normalize_phone_number
+from app.core.website import normalize_website
 
 
 ContactPriority = Literal["High", "Medium", "Low"]
@@ -80,6 +81,11 @@ class ContactBase(BaseModel):
     def validate_phone(cls, v: Optional[str]) -> Optional[str]:
         return normalize_phone_number(v)
 
+    @field_validator("Website", mode="before")
+    @classmethod
+    def validate_website(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_website(v)
+
 
 
 class ContactCreate(ContactBase):
@@ -119,6 +125,11 @@ class ContactUpdate(BaseModel):
     @classmethod
     def validate_phone(cls, v: Optional[str]) -> Optional[str]:
         return normalize_phone_number(v)
+
+    @field_validator("Website", mode="before")
+    @classmethod
+    def validate_website(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_website(v)
 
     @field_validator("Next_Followup_Date", mode="before")
     @classmethod

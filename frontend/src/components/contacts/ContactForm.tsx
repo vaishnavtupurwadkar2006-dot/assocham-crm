@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import type { Contact } from '@/types'
 import { normalizePhoneNumber } from '@/lib/phone'
+import { normalizeWebsite } from '@/lib/utils'
 
 
 interface ContactFormProps {
@@ -89,6 +90,7 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
         ...form,
         Phone: normalizePhoneNumber(form.Phone),
         Alternate_Phone: normalizePhoneNumber(form.Alternate_Phone),
+        Website: normalizeWebsite(form.Website),
         Next_Followup_Date: form.Next_Followup_Date || '',
       })
 

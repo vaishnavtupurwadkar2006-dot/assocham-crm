@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 from app.core.phone import normalize_phone_number
+from app.core.website import normalize_website
 
 
 
@@ -46,6 +47,11 @@ class ExtractedFields(BaseModel):
     @classmethod
     def validate_phone(cls, v: Optional[str]) -> Optional[str]:
         return normalize_phone_number(v)
+
+    @field_validator("website", mode="before")
+    @classmethod
+    def validate_website(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_website(v)
 
 
 
@@ -140,4 +146,9 @@ class ConfirmExtractionRequest(BaseModel):
     @classmethod
     def validate_phone(cls, v: Optional[str]) -> Optional[str]:
         return normalize_phone_number(v)
+
+    @field_validator("Website", mode="before")
+    @classmethod
+    def validate_website(cls, v: Optional[str]) -> Optional[str]:
+        return normalize_website(v)
 

@@ -7,6 +7,7 @@ import { Upload, CheckCircle, Save } from 'lucide-react'
 import BulkProgress from '@/components/business-card/BulkProgress'
 import { bulkExtractBusinessCards, createContact } from '@/lib/api'
 import type { BulkExtractionResult } from '@/types'
+import { normalizeWebsite } from '@/lib/utils'
 
 export default function BulkImportPage() {
   const queryClient = useQueryClient()
@@ -95,7 +96,7 @@ export default function BulkImportPage() {
           Sector: r.extracted.sector,
           Phone: r.extracted.phone,
           Email: r.extracted.email,
-          Website: r.extracted.website,
+          Website: normalizeWebsite(r.extracted.website),
           LinkedIn: r.extracted.linkedin,
           Address: r.extracted.address,
           City: r.extracted.city,
