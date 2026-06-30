@@ -58,7 +58,7 @@ export default function DashboardCharts({ data }: DashboardChartsProps) {
             </ResponsiveContainer>
           )
         }
-        <Legend items={data.by_sector.slice(0, 5)} />
+        <Legend items={data.by_sector} />
       </div>
 
       {/* State Distribution - Bar */}

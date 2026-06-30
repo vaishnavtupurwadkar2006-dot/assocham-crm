@@ -6,8 +6,47 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import FilterPanel from '@/components/contacts/FilterPanel'
 import ContactsTable from '@/components/contacts/ContactsTable'
-import { getContacts } from '@/lib/api'
+import { getContacts, getDistinctValues } from '@/lib/api'
 import type { ContactFilters } from '@/lib/api'
+
+const INDIAN_STATES_AND_UTS = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry'
+]
 
 export default function ContactsPage() {
   const [filters, setFilters] = useState<ContactFilters>({ page: 1, page_size: 20 })
@@ -17,15 +56,24 @@ export default function ContactsPage() {
     queryFn: () => getContacts(filters),
   })
 
-  // Get distinct values for filter dropdowns from current full dataset
-  const { data: allData } = useQuery({
-    queryKey: ['contacts-all'],
-    queryFn: () => getContacts({ page: 1, page_size: 1000 }),
+  // Get distinct values for filter dropdowns dynamically from the backend
+  const { data: sectorsData } = useQuery({
+    queryKey: ['contacts-distinct-sectors'],
+    queryFn: () => getDistinctValues('Sector'),
     staleTime: 300_000,
   })
 
-  const sectors = [...new Set(allData?.data.map(c => c.Sector).filter(Boolean) as string[])].sort()
-  const states = [...new Set(allData?.data.map(c => c.State).filter(Boolean) as string[])].sort()
+  const { data: statesData } = useQuery({
+    queryKey: ['contacts-distinct-states'],
+    queryFn: () => getDistinctValues('State'),
+    staleTime: 300_000,
+  })
+
+  const sectors = [...new Set((sectorsData?.data || []).map(s => s.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+  const states = [...new Set([
+    ...(statesData?.data || []).map(s => s.trim()).filter(Boolean),
+    ...INDIAN_STATES_AND_UTS
+  ])].sort((a, b) => a.localeCompare(b))
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

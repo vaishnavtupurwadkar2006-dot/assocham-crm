@@ -94,6 +94,7 @@ export default function BusinessCardPage() {
         setSavedContact(saved)
         setStep('success')
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-charts'] })
         queryClient.invalidateQueries({ queryKey: ['dashboard-recent'] })
         queryClient.invalidateQueries({ queryKey: ['contacts'] })
         queryClient.invalidateQueries({ queryKey: ['followups'] })
@@ -115,6 +116,7 @@ export default function BusinessCardPage() {
         setSavedContact((res as { data: Contact }).data)
         setStep('success')
         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['dashboard-charts'] })
         queryClient.invalidateQueries({ queryKey: ['contacts'] })
         queryClient.invalidateQueries({ queryKey: ['followups'] })
       }

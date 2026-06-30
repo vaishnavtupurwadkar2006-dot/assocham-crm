@@ -35,13 +35,21 @@ def _get_client():
 
 # ── Business Card Extraction ──────────────────────────────────────────────────
 
-EXTRACTION_PROMPT = """You are an expert at reading business cards.
+APPROVED_SECTOR_LIST = (
+    "Agriculture, Banking & Finance, Biotechnology, Consulting, Education, Energy, "
+    "Engineering, Food & Beverage, Government, Handicrafts, Healthcare, "
+    "Hospitality & Tourism, Information Technology, Legal, Logistics & Supply Chain, "
+    "Manufacturing, Media & Communications, NGO / Non-Profit, Pharmaceuticals, "
+    "Real Estate, Renewable Energy, Sustainability, Other"
+)
+
+EXTRACTION_PROMPT = f"""You are an expert at reading business cards.
 
 Extract ALL contact information visible on this business card and return it as a JSON object.
 Return ONLY valid JSON — no markdown, no code fences, no explanation.
 
 Extract these fields (use null for any field not visible):
-{
+{{
   "name": "Full name of the person",
   "designation": "Job title or designation",
   "company": "Company or organization name",
@@ -56,15 +64,15 @@ Extract these fields (use null for any field not visible):
   "city": "City name",
   "state": "State or province name",
   "country": "Country name (default India if not mentioned)",
-  "sector": "Industry sector inferred from company/designation",
+  "sector": "Choose EXACTLY ONE sector from this approved list: {APPROVED_SECTOR_LIST}. Pick the single best match based on the company name and job title. Return only the exact string from the list. If nothing matches well, return Other. Never invent a new sector name.",
   "notes": "Any other relevant information on the card"
-}
+}}
 
 Important rules:
 - Extract phone numbers as plain text with + country code if visible
 - Extract email addresses exactly as shown
 - If the company name contains a division, use the full name as company
-- Infer the sector from the company name and designation if not explicitly stated
+- For the sector field: ONLY return one of the approved values listed above — do not create new categories
 - If multiple addresses, use the primary one
 - Return valid JSON only"""
 

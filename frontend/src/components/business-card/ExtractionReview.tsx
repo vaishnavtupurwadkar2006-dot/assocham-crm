@@ -5,6 +5,9 @@ import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import type { ExtractedFields } from '@/types'
 import { normalizePhoneNumber } from '@/lib/phone'
 import { normalizeWebsite } from '@/lib/utils'
+import { APPROVED_SECTORS } from '@/lib/sectors'
+import { INDIA_STATES } from '@/lib/india-states'
+import SearchableSelect from '@/components/ui/SearchableSelect'
 
 
 interface ExtractionReviewProps {
@@ -32,6 +35,7 @@ export default function ExtractionReview({
     designation: extracted.designation || '',
     company: extracted.company || '',
     parent_organization: extracted.parent_organization || '',
+    // Use the sector Gemini returned directly — it is already from the approved list
     sector: extracted.sector || '',
     phone: extracted.phone || '',
     alternate_phone: extracted.alternate_phone || '',
@@ -113,7 +117,14 @@ export default function ExtractionReview({
         <Field label="Designation" value={form.designation} onChange={set('designation')} />
         <Field label="Company *" value={form.company} onChange={set('company')} required />
         <Field label="Parent Organization" value={form.parent_organization} onChange={set('parent_organization')} />
-        <Field label="Sector / Industry" value={form.sector} onChange={set('sector')} />
+        <SearchableSelect
+          label="Sector / Industry"
+          value={form.sector}
+          onChange={val => setForm(f => ({ ...f, sector: val }))}
+          options={APPROVED_SECTORS}
+          placeholder="Select sector…"
+          dark
+        />
         <div>
           <label className="block text-xs font-medium text-gray-400 mb-1.5">Priority</label>
           <select
@@ -142,7 +153,14 @@ export default function ExtractionReview({
         <p className="text-xs text-gray-500 uppercase tracking-wider mb-3 font-semibold">Location</p>
         <div className="grid grid-cols-3 gap-4">
           <Field label="City" value={form.city} onChange={set('city')} />
-          <Field label="State" value={form.state} onChange={set('state')} />
+          <SearchableSelect
+            label="State"
+            value={form.state}
+            onChange={val => setForm(f => ({ ...f, state: val }))}
+            options={INDIA_STATES}
+            placeholder="Select state…"
+            dark
+          />
           <Field label="Country" value={form.country} onChange={set('country')} />
         </div>
         <div className="mt-4">
@@ -193,10 +211,11 @@ export default function ExtractionReview({
   )
 }
 
-function Field({ label, value, onChange, type = 'text', required, placeholder }: {
+function Field({ label, value, onChange, onBlur, type = 'text', required, placeholder }: {
   label: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   type?: string
   required?: boolean
   placeholder?: string
@@ -208,6 +227,7 @@ function Field({ label, value, onChange, type = 'text', required, placeholder }:
         type={type}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         required={required}
         placeholder={placeholder}
         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600"

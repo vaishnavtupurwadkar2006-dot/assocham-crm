@@ -18,6 +18,7 @@ from app.schemas.contact import (
     ContactListResponse,
     ContactUpdate,
     DuplicateCheckResponse,
+    DistinctValuesResponse,
 )
 from app.services.contact_service import ContactService
 from app.services.dependencies import (
@@ -81,6 +82,16 @@ async def check_duplicate(
     )
 
 
+@router.get("/distinct", response_model=DistinctValuesResponse)
+async def get_distinct_values(
+    current_user: CurrentUser,
+    field: str = Query(..., description="Field name (e.g. Sector, State)"),
+    svc: ContactService = Depends(get_contact_service),
+):
+    """Get distinct values for a field (e.g. Sector, State)."""
+    return DistinctValuesResponse(success=True, data=svc.get_distinct_values(field))
+
+
 @router.get("/{contact_id}", response_model=ContactDetailResponse)
 async def get_contact(
     contact_id: str,
@@ -126,6 +137,48 @@ async def update_contact(
     return ContactDetailResponse(data=contact)
 
 
+@router.post("/{contact_id}/complete-followup", response_model=ContactDetailResponse)
+async def complete_followup(
+    contact_id: str,
+    current_user: StaffOrAbove,
+    svc: ContactService = Depends(get_contact_service),
+):
+    """
+    Mark a follow-up as completed for the given contact.
+
+    Actions taken:
+    - Clears Next_Followup_Date (removes from follow-up list).
+    - Appends a timestamped note: "Follow-up completed on YYYY-MM-DD".
+    - Sets Last_Updated to today.
+    """
+    from datetime import date as _date
+
+    audit_repo = get_audit_repository()
+
+    # Fetch current contact to carry over existing notes
+    existing = svc.get_contact(contact_id)
+    today_str = _date.today().isoformat()
+    completion_note = f"Follow-up completed on {today_str}"
+
+    # Append to existing notes (don't overwrite)
+    existing_notes = (existing.Notes or "").strip()
+    new_notes = f"{existing_notes}\n{completion_note}".strip() if existing_notes else completion_note
+
+    updates = {
+        "Next_Followup_Date": None,   # removes from all follow-up lists
+        "Notes": new_notes,
+    }
+
+    contact = svc.update_contact(
+        contact_id=contact_id,
+        updates=updates,
+        user_id=current_user.user_id,
+        user_name=current_user.email,
+        audit_repo=audit_repo,
+    )
+    return ContactDetailResponse(data=contact)
+
+
 @router.delete("/{contact_id}", response_model=ContactDeleteResponse)
 async def delete_contact(
     contact_id: str,
@@ -140,3 +193,4 @@ async def delete_contact(
         audit_repo=audit_repo,
     )
     return ContactDeleteResponse(message=f"Contact {contact_id} deleted successfully.")
+

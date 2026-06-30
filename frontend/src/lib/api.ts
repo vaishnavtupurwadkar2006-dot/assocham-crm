@@ -54,7 +54,21 @@ async function apiFetch<T>(
   const data = await res.json()
 
   if (!res.ok) {
-    throw new Error(data.error || data.detail || `Request failed: ${res.status}`)
+    let errorMessage = `Request failed: ${res.status}`
+    if (data.error && typeof data.error === 'string') {
+      errorMessage = data.error
+    } else if (data.detail) {
+      if (typeof data.detail === 'string') {
+        errorMessage = data.detail
+      } else if (Array.isArray(data.detail)) {
+        // FastAPI 422 validation errors: [{loc, msg, type}, ...]
+        errorMessage = data.detail.map((e: { msg?: string; loc?: string[] }) => {
+          const field = e.loc ? e.loc.slice(-1)[0] : ''
+          return field ? `${field}: ${e.msg}` : e.msg || 'Validation error'
+        }).join('; ')
+      }
+    }
+    throw new Error(errorMessage)
   }
 
   return data as T
@@ -112,6 +126,10 @@ export async function getContacts(filters: ContactFilters = {}): Promise<Contact
   return apiFetch(`/contacts?${params}`)
 }
 
+export async function getDistinctValues(field: string): Promise<{ success: boolean; data: string[] }> {
+  return apiFetch(`/contacts/distinct?field=${field}`)
+}
+
 export async function getContact(id: string): Promise<ContactDetailResponse> {
   return apiFetch(`/contacts/${id}`)
 }
@@ -133,6 +151,11 @@ export async function updateContact(id: string, data: Partial<Contact>): Promise
 export async function deleteContact(id: string): Promise<{ success: boolean; message: string }> {
   return apiFetch(`/contacts/${id}`, { method: 'DELETE' })
 }
+
+export async function completeFollowUp(id: string): Promise<ContactDetailResponse> {
+  return apiFetch(`/contacts/${id}/complete-followup`, { method: 'POST' })
+}
+
 
 export async function checkDuplicate(params: {
   email?: string

@@ -23,6 +23,7 @@ export default function EditContactPage() {
     await queryClient.invalidateQueries({ queryKey: ['contact', id] })
     await queryClient.invalidateQueries({ queryKey: ['contacts'] })
     await queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    await queryClient.invalidateQueries({ queryKey: ['dashboard-charts'] })
     await queryClient.invalidateQueries({ queryKey: ['followups'] })
     router.push(`/contacts/${id}`)
   }

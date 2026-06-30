@@ -1,12 +1,16 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import Link from 'next/link'
-import { Calendar, AlertCircle, Clock, CheckCircle } from 'lucide-react'
-import { getFollowUps } from '@/lib/api'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { Calendar, AlertCircle, Clock, CheckCircle, Check, Loader2 } from 'lucide-react'
+import { getFollowUps, completeFollowUp } from '@/lib/api'
 import type { FollowUpItem } from '@/types'
 
 export default function FollowUpsPage() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+
   const { data, isLoading } = useQuery({
     queryKey: ['followups'],
     queryFn: getFollowUps,
@@ -31,6 +35,12 @@ export default function FollowUpsPage() {
   const dueWeek = fu?.due_this_week || []
   const total = overdue.length + dueToday.length + dueWeek.length
 
+  async function handleDone(contactId: string) {
+    await completeFollowUp(contactId)
+    // Immediately remove from the cached list optimistically and refetch
+    queryClient.invalidateQueries({ queryKey: ['followups'] })
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -52,6 +62,8 @@ export default function FollowUpsPage() {
           icon={<AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-450" />}
           items={overdue}
           color="red"
+          onNavigate={(id) => router.push(`/contacts/${id}`)}
+          onDone={handleDone}
         />
       )}
       {dueToday.length > 0 && (
@@ -60,14 +72,18 @@ export default function FollowUpsPage() {
           icon={<Clock className="w-4 h-4 text-amber-600 dark:text-amber-450" />}
           items={dueToday}
           color="yellow"
+          onNavigate={(id) => router.push(`/contacts/${id}`)}
+          onDone={handleDone}
         />
       )}
       {dueWeek.length > 0 && (
         <Section
-          title="Due This Week"
+          title="Upcoming (Next 2 Weeks)"
           icon={<Calendar className="w-4 h-4 text-indigo-650 dark:text-indigo-400" />}
           items={dueWeek}
           color="blue"
+          onNavigate={(id) => router.push(`/contacts/${id}`)}
+          onDone={handleDone}
         />
       )}
     </div>
@@ -75,12 +91,14 @@ export default function FollowUpsPage() {
 }
 
 function Section({
-  title, icon, items, color,
+  title, icon, items, color, onNavigate, onDone,
 }: {
   title: string
   icon: React.ReactNode
   items: FollowUpItem[]
   color: 'red' | 'yellow' | 'blue'
+  onNavigate: (id: string) => void
+  onDone: (id: string) => Promise<void>
 }) {
   const border = { 
     red: 'border-rose-200 dark:border-rose-900/30', 
@@ -103,45 +121,118 @@ function Section({
       </div>
       <div className="divide-y divide-zinc-100 dark:divide-zinc-850">
         {items.map(item => (
-          <Link
+          <FollowUpRow
             key={item.contact_id}
-            href={`/contacts/${item.contact_id}`}
-            className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition group"
-          >
-            <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center flex-shrink-0">
-              <span className="text-zinc-600 dark:text-zinc-300 text-xs font-bold">
-                {(item.name || item.company || '?').charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-zinc-900 dark:text-white text-sm font-semibold truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
-                {item.name || '—'}
-              </p>
-              <p className="text-zinc-500 dark:text-zinc-400 text-xs truncate font-medium">{item.company}</p>
-            </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-zinc-800 dark:text-zinc-200 text-xs font-semibold">
-                {new Date(item.followup_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
-              <p className={`text-xs mt-0.5 font-medium ${item.is_overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-zinc-400 dark:text-zinc-500'}`}>
-                {item.is_overdue
-                  ? `${Math.abs(item.days_until)} day${Math.abs(item.days_until) !== 1 ? 's' : ''} overdue`
-                  : item.days_until === 0 ? 'Today'
-                  : `In ${item.days_until} day${item.days_until !== 1 ? 's' : ''}`}
-              </p>
-            </div>
-            {item.phone && (
-              <a
-                href={`tel:${item.phone}`}
-                onClick={e => e.stopPropagation()}
-                className="ml-2 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-250 dark:hover:border-emerald-900 text-zinc-700 dark:text-zinc-300 hover:text-emerald-650 dark:hover:text-emerald-450 text-xs font-bold rounded-lg transition"
-              >
-                Call
-              </a>
-            )}
-          </Link>
+            item={item}
+            onNavigate={onNavigate}
+            onDone={onDone}
+          />
         ))}
       </div>
+    </div>
+  )
+}
+
+function FollowUpRow({
+  item,
+  onNavigate,
+  onDone,
+}: {
+  item: FollowUpItem
+  onNavigate: (id: string) => void
+  onDone: (id: string) => Promise<void>
+}) {
+  const [completing, setCompleting] = useState(false)
+  const [done, setDone] = useState(false)
+
+  async function handleDone(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (completing || done) return
+    setCompleting(true)
+    try {
+      await onDone(item.contact_id)
+      setDone(true)
+    } catch {
+      // On error, reset so user can retry
+      setCompleting(false)
+    }
+  }
+
+  // Fade out completed rows with a brief animation before they disappear on refetch
+  if (done) {
+    return (
+      <div className="flex items-center gap-4 px-5 py-3.5 opacity-40 pointer-events-none transition-opacity duration-300">
+        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center flex-shrink-0">
+          <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm font-semibold truncate line-through">
+            {item.name || '—'}
+          </p>
+          <p className="text-zinc-400 dark:text-zinc-600 text-xs truncate font-medium">{item.company}</p>
+        </div>
+        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Completed</span>
+      </div>
+    )
+  }
+
+  return (
+    // ── Row is a div navigated via onClick/keyboard — no anchor nesting ──
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => onNavigate(item.contact_id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onNavigate(item.contact_id) }}
+      className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition group cursor-pointer"
+    >
+      {/* Done button — stops row click from firing */}
+      <button
+        type="button"
+        onClick={handleDone}
+        disabled={completing}
+        title="Mark as Done"
+        className={`
+          w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center border-2 transition
+          ${completing
+            ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 cursor-wait'
+            : 'border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-emerald-500 dark:hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 group/done'
+          }
+        `}
+      >
+        {completing ? (
+          <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />
+        ) : (
+          <Check className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-600 group-hover/done:text-emerald-500 dark:group-hover/done:text-emerald-400 transition" />
+        )}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-zinc-900 dark:text-white text-sm font-semibold truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">
+          {item.name || '—'}
+        </p>
+        <p className="text-zinc-500 dark:text-zinc-400 text-xs truncate font-medium">{item.company}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-zinc-800 dark:text-zinc-200 text-xs font-semibold">
+          {new Date(item.followup_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </p>
+        <p className={`text-xs mt-0.5 font-medium ${item.is_overdue ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-zinc-400 dark:text-zinc-500'}`}>
+          {item.is_overdue
+            ? `${Math.abs(item.days_until)} day${Math.abs(item.days_until) !== 1 ? 's' : ''} overdue`
+            : item.days_until === 0 ? 'Today'
+            : `In ${item.days_until} day${item.days_until !== 1 ? 's' : ''}`}
+        </p>
+      </div>
+      {item.phone && (
+        // ── tel: anchor is standalone — not nested inside another anchor ──
+        <a
+          href={`tel:${item.phone}`}
+          onClick={(e) => e.stopPropagation()}
+          className="ml-2 px-3 py-1.5 bg-zinc-50 dark:bg-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 border border-zinc-200 dark:border-zinc-800 hover:border-emerald-250 dark:hover:border-emerald-900 text-zinc-700 dark:text-zinc-300 hover:text-emerald-650 dark:hover:text-emerald-450 text-xs font-bold rounded-lg transition"
+        >
+          Call
+        </a>
+      )}
     </div>
   )
 }

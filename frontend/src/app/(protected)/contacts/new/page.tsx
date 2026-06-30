@@ -16,6 +16,7 @@ export default function NewContactPage() {
     const res = await createContact(formData)
     queryClient.invalidateQueries({ queryKey: ['contacts'] })
     queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    queryClient.invalidateQueries({ queryKey: ['dashboard-charts'] })
     queryClient.invalidateQueries({ queryKey: ['followups'] })
     router.push(`/contacts/${res.data.Contact_ID}`)
   }

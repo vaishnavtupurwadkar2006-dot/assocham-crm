@@ -109,8 +109,19 @@ class DashboardService:
             key = target.strftime("%b %Y")
             growth.append(ChartDataPoint(name=key, value=month_counter.get(key, 0)))
 
+        # Sort sectors by count descending
+        sorted_sectors = sector_counter.most_common()
+        if len(sorted_sectors) > 10:
+            top_10 = sorted_sectors[:10]
+            other_val = sum(v for k, v in sorted_sectors[10:])
+            by_sector_points = [ChartDataPoint(name=k, value=v) for k, v in top_10]
+            if other_val > 0:
+                by_sector_points.append(ChartDataPoint(name="Other", value=other_val))
+        else:
+            by_sector_points = [ChartDataPoint(name=k, value=v) for k, v in sorted_sectors]
+
         return DashboardChartData(
-            by_sector=top_n(sector_counter),
+            by_sector=by_sector_points,
             by_state=top_n(state_counter),
             by_source_type=top_n(source_counter),
             growth_by_month=growth,
@@ -142,7 +153,7 @@ class DashboardService:
     def get_followups(self) -> FollowUpSummary:
         contacts = self._repo.get_all()
         today = date.today()
-        week_end = today + timedelta(days=7)
+        week_end = today + timedelta(days=14)  # show upcoming 2 weeks
 
         due_today: list[FollowUpItem] = []
         due_week: list[FollowUpItem] = []
@@ -172,11 +183,13 @@ class DashboardService:
                 due_week.append(item)
 
         overdue.sort(key=lambda x: x.days_until)
+        due_week.sort(key=lambda x: x.days_until)
         return FollowUpSummary(
             due_today=due_today,
             due_this_week=due_week,
             overdue=overdue,
         )
+
 
     def get_data_quality(self) -> DataQualitySummary:
         contacts = self._repo.get_all()

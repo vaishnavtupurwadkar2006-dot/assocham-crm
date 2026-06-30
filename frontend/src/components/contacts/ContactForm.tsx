@@ -5,6 +5,9 @@ import { Loader2 } from 'lucide-react'
 import type { Contact } from '@/types'
 import { normalizePhoneNumber } from '@/lib/phone'
 import { normalizeWebsite } from '@/lib/utils'
+import { APPROVED_SECTORS } from '@/lib/sectors'
+import { INDIA_STATES } from '@/lib/india-states'
+import SearchableSelect from '@/components/ui/SearchableSelect'
 
 
 interface ContactFormProps {
@@ -110,7 +113,13 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
           <Field label="Designation / Title" value={form.Designation} onChange={set('Designation')} />
           <Field label="Company *" value={form.Company} onChange={set('Company')} required />
           <Field label="Parent Organization" value={form.Parent_Organization} onChange={set('Parent_Organization')} />
-          <Field label="Sector / Industry" value={form.Sector} onChange={set('Sector')} />
+          <SearchableSelect
+            label="Sector / Industry"
+            value={form.Sector}
+            onChange={val => setForm(f => ({ ...f, Sector: val }))}
+            options={APPROVED_SECTORS}
+            placeholder="Select sector…"
+          />
           <Field label="Company Type" value={form.Company_Type} onChange={set('Company_Type')} />
         </div>
       </section>
@@ -133,7 +142,13 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
         <h3 className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-4">Location</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <Field label="City" value={form.City} onChange={set('City')} />
-          <Field label="State" value={form.State} onChange={set('State')} />
+          <SearchableSelect
+            label="State"
+            value={form.State}
+            onChange={val => setForm(f => ({ ...f, State: val }))}
+            options={INDIA_STATES}
+            placeholder="Select state…"
+          />
           <Field label="Country" value={form.Country} onChange={set('Country')} />
         </div>
         <Field label="Full Address" value={form.Address} onChange={set('Address')} />
@@ -196,8 +211,9 @@ export default function ContactForm({ initial = {}, onSubmit, onCancel, isEdit }
   )
 }
 
-function Field({ label, value, onChange, type = 'text', required, placeholder }: {
+function Field({ label, value, onChange, onBlur, type = 'text', required, placeholder }: {
   label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   type?: string; required?: boolean; placeholder?: string
 }) {
   return (
@@ -207,6 +223,7 @@ function Field({ label, value, onChange, type = 'text', required, placeholder }:
         type={type}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         required={required}
         placeholder={placeholder}
         className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-white text-sm placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition"

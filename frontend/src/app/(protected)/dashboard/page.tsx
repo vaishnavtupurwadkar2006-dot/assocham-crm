@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import {
-  Users, Building2, Globe, Layers, TrendingUp, Star, CreditCard, Calendar, Loader2
+  Users, Building2, Globe, Layers, TrendingUp, Star, CreditCard, Calendar, Loader2, RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
 import StatCard from '@/components/dashboard/StatCard'
@@ -15,26 +15,35 @@ import {
 } from '@/lib/api'
 
 export default function DashboardPage() {
-  const { data: statsRes, isLoading: statsLoading } = useQuery({
+  const { data: statsRes, isLoading: statsLoading, isFetching: statsFetching, refetch: refetchStats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: getDashboardStats,
     refetchInterval: 60_000,
   })
-  const { data: chartsRes, isLoading: chartsLoading } = useQuery({
+  const { data: chartsRes, isLoading: chartsLoading, isFetching: chartsFetching, refetch: refetchCharts } = useQuery({
     queryKey: ['dashboard-charts'],
     queryFn: getDashboardCharts,
     refetchInterval: 120_000,
   })
-  const { data: recentRes, isLoading: recentLoading } = useQuery({
+  const { data: recentRes, isLoading: recentLoading, isFetching: recentFetching, refetch: refetchRecent } = useQuery({
     queryKey: ['dashboard-recent'],
     queryFn: () => getRecentActivity(10),
     refetchInterval: 60_000,
   })
-  const { data: followupsRes, isLoading: followupsLoading } = useQuery({
+  const { data: followupsRes, isLoading: followupsLoading, isFetching: followupsFetching, refetch: refetchFollowups } = useQuery({
     queryKey: ['followups'],
     queryFn: getFollowUps,
     refetchInterval: 60_000,
   })
+
+  const isRefreshing = statsFetching || chartsFetching || recentFetching || followupsFetching
+
+  const handleRefresh = () => {
+    refetchStats()
+    refetchCharts()
+    refetchRecent()
+    refetchFollowups()
+  }
 
   const stats = statsRes?.data
   const charts = chartsRes?.data
@@ -66,6 +75,14 @@ export default function DashboardPage() {
           <Layers className="w-4 h-4 text-zinc-400" />
           AI Search
         </Link>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-semibold rounded-lg border border-zinc-200 dark:border-zinc-800 transition shadow-sm disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 text-zinc-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
 
       {/* KPI Cards */}

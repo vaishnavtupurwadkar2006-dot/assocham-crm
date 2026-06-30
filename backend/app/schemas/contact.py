@@ -86,6 +86,23 @@ class ContactBase(BaseModel):
     def validate_website(cls, v: Optional[str]) -> Optional[str]:
         return normalize_website(v)
 
+    @field_validator("Next_Followup_Date", mode="before")
+    @classmethod
+    def coerce_empty_date(cls, v):
+        """Treat empty string as None so callers can clear the follow-up date."""
+        if v == "" or v is None:
+            return None
+        return v
+
+    @field_validator("Email", "Alternate_Email", mode="before")
+    @classmethod
+    def coerce_empty_email(cls, v: Optional[str]) -> Optional[str]:
+        """Treat empty string as None to avoid strict email validation on blank."""
+        if v == "" or v is None:
+            return None
+        return v
+
+
 
 
 class ContactCreate(ContactBase):
@@ -238,3 +255,8 @@ class DuplicateCheckResponse(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     match_reason: Optional[str] = None
     existing_contact: Optional[ContactResponse] = None
+
+
+class DistinctValuesResponse(BaseModel):
+    success: bool = True
+    data: list[str]

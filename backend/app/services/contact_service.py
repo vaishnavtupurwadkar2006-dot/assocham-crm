@@ -15,6 +15,7 @@ from typing import Any
 
 from app.core.exceptions import ContactNotFoundError
 from app.core.logging import get_logger
+from app.core.sectors import standardize_sector
 from app.schemas.contact import (
     ContactCreate,
     ContactListParams,
@@ -73,6 +74,7 @@ class ContactService:
         data["Contact_ID"] = contact_id
         data["Date_Added"] = today
         data["Last_Updated"] = today
+        data["Sector"] = standardize_sector(data.get("Sector"))
         if data.get("AI_Tags") and isinstance(data["AI_Tags"], list):
             data["AI_Tags"] = ", ".join(data["AI_Tags"])
 
@@ -103,6 +105,8 @@ class ContactService:
         audit_repo=None,
     ) -> ContactResponse:
         updates["Last_Updated"] = date.today().isoformat()
+        if "Sector" in updates:
+            updates["Sector"] = standardize_sector(updates["Sector"])
         if "AI_Tags" in updates and isinstance(updates["AI_Tags"], list):
             updates["AI_Tags"] = ", ".join(updates["AI_Tags"])
 
